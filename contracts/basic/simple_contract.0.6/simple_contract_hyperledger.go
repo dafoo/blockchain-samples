@@ -485,12 +485,12 @@ type AssetState struct {
 }
 
 type AssetUpdatedAt struct {
-	AssetID   *string   `json:"assetID,omitempty"`    // all assets must have an ID, primary key of contract
-	UpdatedAt time.Time `json:"updated_at,omitempty"` // current asset location
+	AssetID   *string   `json:"assetID,omitempty"`   // all assets must have an ID, primary key of contract
+	UpdatedAt time.Time `json:"updatedAt,omitempty"` // current asset location
 }
 
 type AssetMruList struct {
-	List []AssetUpdatedAt
+	List []AssetUpdatedAt `json:"mruList,omitempty"` // current asset location
 }
 
 var contractState = ContractState{MYVERSION}
