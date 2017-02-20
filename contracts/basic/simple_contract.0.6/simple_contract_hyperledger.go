@@ -791,7 +791,7 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 		}
 	}
 	var mruEntry AssetUpdatedAt
-	mruEntryJSON = fmt.Sprintf("{\"assetID\":\"%v\"}", assetID) // TODO: combine with next line
+	mruEntryJSON := fmt.Sprintf("{\"assetID\":\"%v\"}", assetID) // TODO: combine with next line
 	json.Unmarshal([]byte(mruEntryJSON), &mruEntry)
 	mruEntry.UpdatedAt = time.Now().UTC()
 	mruList.List = append([]AssetUpdatedAt{mruEntry}, mruList.List...)[:minInt(len(mruList.List)+1, 10)]
