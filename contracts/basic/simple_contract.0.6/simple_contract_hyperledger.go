@@ -34,6 +34,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
@@ -457,6 +458,9 @@ const CONTRACTSTATEKEY string = "ContractStateKey"
 // MYVERSION must use this to deploy contract
 const MYVERSION string = "1.0"
 
+// Most Recently Used is used to store the last 10 assetIDs and timestamps
+const MRUKEY string = "_MruListKey"
+
 // ************************************
 // asset and contract state
 // ************************************
@@ -478,6 +482,15 @@ type AssetState struct {
 	Location    *Geolocation `json:"location,omitempty"`    // current asset location
 	Temperature *float64     `json:"temperature,omitempty"` // asset temp
 	Carrier     *string      `json:"carrier,omitempty"`     // the name of the carrier
+}
+
+type AssetUpdatedAt struct {
+	AssetID   *string   `json:"assetID,omitempty"`    // all assets must have an ID, primary key of contract
+	UpdatedAt time.Time `json:"updated_at,omitempty"` // current asset location
+}
+
+type AssetMruList struct {
+	List []AssetUpdatedAt
 }
 
 var contractState = ContractState{MYVERSION}
@@ -549,6 +562,9 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	} else if function == "readAssetSchemas" {
 		// returns selected sample objects
 		return t.readAssetSchemas(stub, args)
+	} else if function == "readMruList" {
+		// returns list of assets updated
+		return t.readMruList(stub, args)
 	}
 	return nil, errors.New("Received unknown invocation: " + function)
 }
@@ -629,6 +645,25 @@ func (t *SimpleChaincode) readAsset(stub shim.ChaincodeStubInterface, args []str
 		return nil, err
 	}
 	return assetBytes, nil
+}
+
+//********************readAsset********************/
+
+func (t *SimpleChaincode) readMruList(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var state AssetMruList
+	var err error
+	assetMruListBytes, err := stub.GetState(MRUKEY)
+	if err != nil || len(assetMruListBytes) == 0 {
+		err = errors.New("Unable to get MruList from ledger")
+		return nil, err
+	}
+
+	err = json.Unmarshal(assetMruListBytes, &state)
+	if err != nil {
+		err = errors.New("Unable to unmarshal MruList state data obtained from ledger")
+		return nil, err
+	}
+	return assetMruListBytes, nil
 }
 
 //*************readAssetObjectModel*****************/
@@ -743,6 +778,30 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 		err = errors.New("PUT ledger state failed: " + fmt.Sprint(err))
 		return nil, err
 	}
+	// deal with MRUList structure
+	var mruList AssetMruList
+	mruBytes, err := stub.GetState(MRUKEY)
+	if err != nil || len(assetBytes) == 0 { // No MRU List yet
+		mruList = AssetMruList{} //make a new one
+	} else {
+		err = json.Unmarshal(mruBytes, &mruList)
+		if err != nil {
+			err = errors.New("Unable to unmarshal JSON data for mruList")
+			return nil, err
+		}
+	}
+	var mruEntry AssetUpdatedAt
+	mruEntryJSON = fmt.Sprintf("{\"assetID\":\"%v\"}", assetID) // TODO: combine with next line
+	json.Unmarshal([]byte(mruEntryJSON), &mruEntry)
+	mruEntry.UpdatedAt = time.Now().UTC()
+	mruList.List = append([]AssetUpdatedAt{mruEntry}, mruList.List...)[:minInt(len(mruList.List)+1, 10)]
+	mruListJSON, err := json.Marshal(mruList)
+	if err != nil {
+		err = errors.New("Unable to marshal mruList")
+		return nil, err
+	}
+	err = stub.PutState(MRUKEY, mruListJSON)
+
 	return nil, nil
 }
 
