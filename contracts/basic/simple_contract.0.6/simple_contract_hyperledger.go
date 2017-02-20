@@ -482,7 +482,7 @@ type AssetState struct {
 	Location    *Geolocation `json:"location,omitempty"`    // current asset location
 	Temperature *float64     `json:"temperature,omitempty"` // asset temp
 	Carrier     *string      `json:"carrier,omitempty"`     // the name of the carrier
-	UpdatedAt   time.Time    `json:"updatedAt,omitempty"`
+	UpdatedAt   *time.Time   `json:"updatedAt,omitempty"`
 }
 
 type AssetUpdatedAt struct {
@@ -778,7 +778,8 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 			return nil, err
 		}
 	}
-	stateStub.UpdatedAt = time.Now().UTC()
+	now := time.Now().UTC()
+	stateStub.UpdatedAt = &now
 	stateJSON, err := json.Marshal(stateStub)
 	if err != nil {
 		fmt.Printf("Error Marshaling assetID (%s): %s", assetID, err)
