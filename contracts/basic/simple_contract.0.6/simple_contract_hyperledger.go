@@ -482,15 +482,16 @@ type AssetState struct {
 	Location    *Geolocation `json:"location,omitempty"`    // current asset location
 	Temperature *float64     `json:"temperature,omitempty"` // asset temp
 	Carrier     *string      `json:"carrier,omitempty"`     // the name of the carrier
+	UpdatedAt   time.Time    `json:"updatedAt,omitempty"`
 }
 
 type AssetUpdatedAt struct {
 	AssetID   *string   `json:"assetID,omitempty"`   // all assets must have an ID, primary key of contract
-	UpdatedAt time.Time `json:"updatedAt,omitempty"` // current asset location
+	UpdatedAt time.Time `json:"updatedAt,omitempty"` // when was AssetID last updated
 }
 
 type AssetMruList struct {
-	List []AssetUpdatedAt `json:"mruList,omitempty"` // current asset location
+	List []AssetUpdatedAt `json:"mruList,omitempty"` // the list
 }
 
 var contractState = ContractState{MYVERSION}
@@ -774,6 +775,7 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 			return nil, err
 		}
 	}
+	stateStub.UpdatedAt = time.Now().UTC()
 	stateJSON, err := json.Marshal(stateStub)
 	if err != nil {
 		return nil, errors.New("Marshal failed for contract state" + fmt.Sprint(err))
