@@ -730,6 +730,14 @@ func (t *SimpleChaincode) validateInput(args []string) (stateIn AssetState, err 
 	return stateIn, nil
 }
 
+//****** minInt: helper function for createOrUpdateAsset ******/
+func minInt(a int, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 //******************** createOrUpdateAsset ********************/
 
 func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
