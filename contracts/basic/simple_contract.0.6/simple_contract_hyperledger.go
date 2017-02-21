@@ -458,7 +458,7 @@ const CONTRACTSTATEKEY string = "ContractStateKey"
 // MYVERSION must use this to deploy contract
 const MYVERSION string = "1.0"
 
-// Most Recently Used is used to store the last 10 assetIDs and timestamps
+// MRUKEY is used to store the last 10 assetIDs and timestamps
 const MRUKEY string = "_MruListKey"
 
 // ************************************
