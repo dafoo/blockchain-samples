@@ -808,14 +808,15 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 	var mruList AssetMruList
 	mruBytes, err := stub.GetState(MRUKEY)
 	logger.Error(fmt.Sprintf("Current mruBytes length: %v", len(mruBytes)))
-	fmt.Printf("Current mruBytes length: %v\n", len(mruBytes))
+	// fmt.Printf("Current mruBytes length: %v\n", len(mruBytes))
 	if err != nil || len(mruBytes) == 0 { // No MRU List yet
 		fmt.Printf("Error GetState MRUKEY (%s): %s\n", MRUKEY, err)
 		mruList = AssetMruList{} //make a new one
 	} else {
 		err = json.Unmarshal(mruBytes, &mruList)
 		if err != nil {
-			fmt.Printf("Error Unmarshaling MRUKEY (%s): %s", MRUKEY, err)
+			logger.Error(fmt.Sprintf("Error Unmarshaling MRUKEY (%s): %s", MRUKEY, err))
+			// fmt.Printf("Error Unmarshaling MRUKEY (%s): %s", MRUKEY, err)
 			err = errors.New("Unable to unmarshal JSON data for mruList")
 			return nil, err
 		}
@@ -824,11 +825,11 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 	mruEntryJSON := fmt.Sprintf("{\"assetID\":\"%v\"}", assetID) // TODO: combine with next line
 	json.Unmarshal([]byte(mruEntryJSON), &mruEntry)
 	logger.Error(fmt.Sprintf("Current mruList length: %v", len(mruList.List)))
-	fmt.Printf("Current mruList length: %v\n", len(mruList.List))
+	// fmt.Printf("Current mruList length: %v\n", len(mruList.List))
 	mruEntry.UpdatedAt = time.Now().UTC()
 	mruList.List = append([]AssetUpdatedAt{mruEntry}, mruList.List...)[:minInt(len(mruList.List)+1, 10)]
 	logger.Error(fmt.Sprintf("New mruList length: %v", len(mruList.List)))
-	fmt.Printf("New mruList length: %v\n", len(mruList.List))
+	// fmt.Printf("New mruList length: %v\n", len(mruList.List))
 	mruListJSON, err := json.Marshal(mruList)
 	if err != nil {
 		fmt.Printf("Error Marshaling mruList: %s", err)
@@ -836,13 +837,14 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 		return nil, err
 	}
 	logger.Error(fmt.Sprintf("mruListJSON: %s", mruListJSON))
-	fmt.Printf("mruListJSON: %s", mruListJSON)
+	// fmt.Printf("mruListJSON: %s\n", mruListJSON)
 	err = stub.PutState(MRUKEY, mruListJSON)
 	if err != nil {
-		fmt.Printf("Error PutState MRUKEY (%s): %s", MRUKEY, err)
+		logger.Error(fmt.Sprintf("Error PutState MRUKEY (%s): %s", MRUKEY, err))
 		err = errors.New("PUT ledger state failed: " + fmt.Sprint(err))
 		return nil, err
 	}
+	fmt.Printf("test line")
 
 	return nil, nil
 }
