@@ -39,6 +39,8 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
+var logger = shim.NewLogger("SimpleContractChainCode")
+
 var samples = `
 {
     "event": {
@@ -502,6 +504,8 @@ var contractState = ContractState{MYVERSION}
 
 // Init is called during deploy
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
+	fmt.Println("fmt: Init called")
+	logger.Error("logger: Init called")
 	var stateArg ContractState
 	var err error
 	if len(args) != 1 {
@@ -573,6 +577,12 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 /**********main implementation *************/
 
 func main() {
+	logger.SetLevel(shim.LogDebug)
+	// logLevel, _ := shim.LogLevel(os.Getenv("SHIM_LOGGING_LEVEL"))
+	logLevel, _ := shim.LogLevel("DEBUG")
+	shim.SetLoggingLevel(logLevel)
+	logger.Error("Foo test logger")
+
 	err := shim.Start(new(SimpleChaincode))
 	if err != nil {
 		fmt.Printf("Error starting Simple Chaincode: %s", err)
