@@ -833,6 +833,8 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 		err = errors.New("Unable to marshal mruList")
 		return nil, err
 	}
+	logger.Error(fmt.Sprintf("mruListJSON: %s", mruListJSON))
+	fmt.Printf("mruListJSON: %s", mruListJSON)
 	err = stub.PutState(MRUKEY, mruListJSON)
 	if err != nil {
 		fmt.Printf("Error PutState MRUKEY (%s): %s", MRUKEY, err)
