@@ -769,7 +769,7 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 	assetBytes, err := stub.GetState(assetID)
 	if err != nil || len(assetBytes) == 0 {
 		// This implies that this is a 'create' scenario
-		logging.Error(fmt.Sprintf("Error GetState for assetID (%s): %s", assetID, err))
+		logger.Error(fmt.Sprintf("Error GetState for assetID (%s): %s", assetID, err))
 		// fmt.Printf("Error GetState for assetID (%s): %s\n", assetID, err)
 		stateStub = stateIn // The record that goes into the stub is the one that cme in
 	} else {
