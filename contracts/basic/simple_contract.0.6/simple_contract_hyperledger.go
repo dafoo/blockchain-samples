@@ -769,13 +769,13 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 	assetBytes, err := stub.GetState(assetID)
 	if err != nil || len(assetBytes) == 0 {
 		// This implies that this is a 'create' scenario
-		fmt.Printf("Error GetState for assetID (%s): %s", assetID, err)
+		fmt.Printf("Error GetState for assetID (%s): %s\n", assetID, err)
 		stateStub = stateIn // The record that goes into the stub is the one that cme in
 	} else {
 		// This is an update scenario
 		err = json.Unmarshal(assetBytes, &stateStub)
 		if err != nil {
-			fmt.Printf("Error Unmarshaling assetID (%s): %s", assetID, err)
+			fmt.Printf("Error Unmarshaling assetID (%s): %s\n", assetID, err)
 			err = errors.New("Unable to unmarshal JSON data from stub")
 			return nil, err
 			// state is an empty instance of asset state
@@ -783,7 +783,7 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 		// Merge partial state updates
 		stateStub, err = t.mergePartialState(stateStub, stateIn)
 		if err != nil {
-			fmt.Printf("Error Unable to merge state assetID (%s): %s", assetID, err)
+			fmt.Printf("Error Unable to merge state assetID (%s): %s\n", assetID, err)
 			err = errors.New("Unable to merge state")
 			return nil, err
 		}
@@ -800,15 +800,17 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 	// Write the new state to the ledger
 	err = stub.PutState(assetID, stateJSON)
 	if err != nil {
-		fmt.Printf("Error PutState assetID (%s): %s", assetID, err)
+		fmt.Printf("Error PutState assetID (%s): %s\n", assetID, err)
 		err = errors.New("PUT ledger state failed: " + fmt.Sprint(err))
 		return nil, err
 	}
 	// deal with MRUList structure
 	var mruList AssetMruList
 	mruBytes, err := stub.GetState(MRUKEY)
-	if err != nil || len(assetBytes) == 0 { // No MRU List yet
-		fmt.Printf("Error GetState MRUKEY (%s): %s", MRUKEY, err)
+	logger.Error(fmt.Sprintf("Current mruBytes length: %v", len(mruBytes)))
+	fmt.Printf("Current mruBytes length: %v\n", len(mruBytes))
+	if err != nil || len(mruBytes) == 0 { // No MRU List yet
+		fmt.Printf("Error GetState MRUKEY (%s): %s\n", MRUKEY, err)
 		mruList = AssetMruList{} //make a new one
 	} else {
 		err = json.Unmarshal(mruBytes, &mruList)
@@ -822,11 +824,11 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 	mruEntryJSON := fmt.Sprintf("{\"assetID\":\"%v\"}", assetID) // TODO: combine with next line
 	json.Unmarshal([]byte(mruEntryJSON), &mruEntry)
 	logger.Error(fmt.Sprintf("Current mruList length: %v", len(mruList.List)))
-	fmt.Printf("Current mruList length: %v", len(mruList.List))
+	fmt.Printf("Current mruList length: %v\n", len(mruList.List))
 	mruEntry.UpdatedAt = time.Now().UTC()
 	mruList.List = append([]AssetUpdatedAt{mruEntry}, mruList.List...)[:minInt(len(mruList.List)+1, 10)]
 	logger.Error(fmt.Sprintf("New mruList length: %v", len(mruList.List)))
-	fmt.Printf("New mruList length: %v", len(mruList.List))
+	fmt.Printf("New mruList length: %v\n", len(mruList.List))
 	mruListJSON, err := json.Marshal(mruList)
 	if err != nil {
 		fmt.Printf("Error Marshaling mruList: %s", err)
