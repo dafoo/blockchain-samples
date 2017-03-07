@@ -769,7 +769,8 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 	assetBytes, err := stub.GetState(assetID)
 	if err != nil || len(assetBytes) == 0 {
 		// This implies that this is a 'create' scenario
-		fmt.Printf("Error GetState for assetID (%s): %s\n", assetID, err)
+		logging.Error(fmt.Sprintf("Error GetState for assetID (%s): %s", assetID, err))
+		// fmt.Printf("Error GetState for assetID (%s): %s\n", assetID, err)
 		stateStub = stateIn // The record that goes into the stub is the one that cme in
 	} else {
 		// This is an update scenario
@@ -844,7 +845,6 @@ func (t *SimpleChaincode) createOrUpdateAsset(stub shim.ChaincodeStubInterface, 
 		err = errors.New("PUT ledger state failed: " + fmt.Sprint(err))
 		return nil, err
 	}
-	fmt.Printf("test line")
 
 	return nil, nil
 }
